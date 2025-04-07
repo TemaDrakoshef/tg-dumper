@@ -1,0 +1,7 @@
+[project]
+name = "tg-dumper"
+version = "0.1.0"
+description = "Software for parsing dialogs and their contents from telegram accounts in TDATA format"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
