@@ -1,4 +1,5 @@
 import sys
+import traceback
 from os import get_terminal_size
 from typing import TypeVar
 
@@ -57,19 +58,23 @@ def lang(*, ru: T, en: T) -> T:
 
 def get_menu(
     menu_name: str,
-    choices_raw: list[tuple[str, str]],
+    choices_raw: list[tuple[str, str]] | None = None,
     is_description: bool = False,
 ):
     row = "[{0}] {1}: {2}" if is_description else "[{0}] {1}"
-    choices = "\n".join(
-        row.format(
-            click.style(str(ind), fg="yellow"),
-            click.style(choice[0], fg="magenta"),
-            click.style(choice[1], fg="cyan") if is_description else None,
+    choices = ""
+    if choices_raw:
+        choices = "\n".join(
+            row.format(
+                click.style(str(ind), fg="yellow"),
+                click.style(
+                    choice[0] if is_description else choice, fg="magenta"
+                ),
+                click.style(choice[1], fg="cyan") if is_description else None,
+            )
+            for ind, choice in enumerate(choices_raw, 1)
         )
-        for ind, choice in enumerate(choices_raw, 1)
-    )
-    choices = click.style(choices, fg="reset")
+        choices = click.style(choices, fg="reset")
 
     menu = "\n {menu_name}\n\n\b{choices}\n\n".strip().format(
         choices=choices,
