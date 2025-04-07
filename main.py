@@ -1,13 +1,17 @@
 from src.impl.home import home_page
 from src.config import setup_config
-from src.utils import setup_logging
+from src.utils import return_to_menu, setup_logging
 
 
 def main():
     setup_config()
     setup_logging()
     
-    home_page()
+    while True:
+        try:
+            home_page()
+        except BaseException as err:
+            return_to_menu(err)
 
 
 if __name__ == "__main__":

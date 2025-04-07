@@ -32,6 +32,10 @@ _LOGO_CENTERED = (
 logo = click.style(_LOGO_CENTERED, fg="green")
 
 
+class ExitToMenu(Exception):
+    pass
+
+
 def pretty_prompt(text: str):
     prompt_prefix = (
         click.style("[", fg="cyan")
@@ -101,3 +105,32 @@ def setup_logging():
     )
 
 
+def return_to_menu(err=None):
+    if not isinstance(
+        err,
+        (
+            ExitToMenu,
+            KeyboardInterrupt,
+            click.exceptions.Abort,
+        ),
+    ):
+        traceback.print_exc()
+
+    sep_line = click.style("━" * terminal_width, fg="bright_black")
+    arrows = click.style(">" * 3, fg="red")
+    return_prompt = click.style(
+        lang(
+            ru="Вернуться в меню? [y/n]",
+            en="Return to menu? [y/n]",
+        ),
+        fg="cyan",
+    )
+    prompt = "\n{}\n{} {}".format(sep_line, arrows, return_prompt)
+    click.echo(prompt, nl=False)
+    return_to_menu_char = click.getchar()
+    if return_to_menu_char.lower() == "n":
+        click.secho(
+            lang(ru="\nЗавершение работы", en="Shutdown RobGram"),
+            fg="green",
+        )
+        sys.exit(1)
