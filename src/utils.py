@@ -1,9 +1,12 @@
 from os import get_terminal_size
 from typing import TypeVar
+
 import click
 
+from src.config import CURRENT_LANG
 
-_logo_raw = """
+
+_LOGO_RAW = """
 ▄▄▄█████▓  ▄████ ▓█████▄  █    ██  ███▄ ▄███▓ ██▓███  ▓█████  ██▀███  
 ▓  ██▒ ▓▒ ██▒ ▀█▒▒██▀ ██▌ ██  ▓██▒▓██▒▀█▀ ██▒▓██░  ██▒▓█   ▀ ▓██ ▒ ██▒
 ▒ ▓██░ ▒░▒██░▄▄▄░░██   █▌▓██  ▒██░▓██    ▓██░▓██░ ██▓▒▒███   ▓██ ░▄█ ▒
@@ -14,19 +17,17 @@ _logo_raw = """
   ░      ░ ░   ░  ░ ░  ░  ░░░ ░ ░ ░      ░   ░░          ░     ░░   ░ 
                ░    ░       ░            ░               ░  ░   ░     
                   ░                                                   
-        """
+"""
 
 terminal_width = get_terminal_size().columns
-_logo_centered = (
+_LOGO_CENTERED = (
     "\n"
     + "\n".join(
-        line.center(terminal_width) for line in _logo_raw.strip().split("\n")
+        line.center(terminal_width) for line in _LOGO_RAW.strip().split("\n")
     )
     + "\n\n"
 )
-logo = click.style(_logo_centered, fg="green")
-
-CURRENT_LANG: str = "ru"
+logo = click.style(_LOGO_CENTERED, fg="green")
 
 
 def pretty_prompt(text: str):
@@ -85,6 +86,6 @@ def get_choice_menu(text: str):
         type=int,
         prompt_suffix="> ",
     )
-    # click.clear()
+    click.clear()
 
     return menu_choice
