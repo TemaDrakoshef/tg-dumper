@@ -1,4 +1,6 @@
+import asyncio
 import click
+from src.impl.load_accounts import load_accounts
 from src.utils import get_choice_menu, get_menu, lang, pretty_prompt
 
 
@@ -39,10 +41,11 @@ def make_home_menu():
 
 
 def home_page():
+    loop = asyncio.new_event_loop()
     menu_choice = make_home_menu()
 
     match menu_choice:
         case 1:
             pass
         case 2:
-            pass
+            loop.run_until_complete(load_accounts())
