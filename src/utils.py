@@ -1,7 +1,9 @@
+import sys
 from os import get_terminal_size
 from typing import TypeVar
 
 import click
+import loguru
 
 from src.config import CURRENT_LANG
 
@@ -89,3 +91,13 @@ def get_choice_menu(text: str):
     click.clear()
 
     return menu_choice
+
+
+def setup_logging():
+    loguru.logger.remove()
+    loguru.logger.add(
+        sys.stdout,
+        format="<lvl>[</lvl><c>{time:HH:mm:ss.SSS}</c><lvl>]</lvl> <lvl>{message}</lvl>",
+    )
+
+
