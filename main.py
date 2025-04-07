@@ -1,5 +1,8 @@
+from src.impl.home import home_page
+
+
 def main():
-    print("Hello from tg-dumper!")
+    home_page()
 
 
 if __name__ == "__main__":
