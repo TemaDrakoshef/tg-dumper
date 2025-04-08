@@ -1,5 +1,6 @@
 import asyncio
 import click
+from src.impl.dumper import dumper_menu
 from src.impl.load_accounts import load_accounts
 from src.utils import get_choice_menu, get_menu, lang, pretty_prompt
 
@@ -40,12 +41,12 @@ def make_home_menu():
     return menu_choice
 
 
-def home_page():
+def home_page(config: dict):
     loop = asyncio.new_event_loop()
     menu_choice = make_home_menu()
 
     match menu_choice:
         case 1:
-            pass
+            loop.run_until_complete(dumper_menu(config))
         case 2:
             loop.run_until_complete(load_accounts())

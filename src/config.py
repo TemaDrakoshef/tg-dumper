@@ -30,14 +30,15 @@ def setup_config():
     config_file = pathlib.Path("config.toml")
     if not config_file.exists():
         config_file.touch()
-        
+
     accounts_file = pathlib.Path("accounts.txt")
     if not accounts_file.exists():
         accounts_file.touch()
 
-
     config = toml.load(config_file)
     click.clear()
+
+    config["proxies"] = []
 
     # if "lang" not in config:
     #     config["lang"] = click.prompt(

@@ -1,18 +1,20 @@
+import asyncio
+
 from src.impl.home import home_page
 from src.config import setup_config
 from src.utils import return_to_menu, setup_logging
 
 
 def main():
-    setup_config()
+    config = setup_config()
     setup_logging()
-    
+
     while True:
         try:
-            home_page()
+            home_page(config)
         except BaseException as err:
             return_to_menu(err)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
