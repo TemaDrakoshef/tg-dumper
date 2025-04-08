@@ -1,12 +1,15 @@
 import asyncio
 import os
+import shutil
 from pathlib import Path
 from contextlib import suppress
+import uuid
 
 import click
 from loguru import logger
 import telethon
 
+import opentele
 from src.config import APP_HASH, APP_ID, SYSTEM_VERSION
 from src.utils import (
     ExitToMenu,
@@ -55,6 +58,8 @@ async def load_accounts() -> None:
             await _load_sessions()
         case 2:
             await _load_tdata()
+
+    raise ExitToMenu()
 
 
 async def _load_sessions() -> None:
@@ -173,4 +178,138 @@ async def _load_sessions_accounts(
 
 
 async def _load_tdata() -> None:
-    pass
+    ftemp = Path(".tdtemp")
+    if not ftemp.exists():
+        ftemp.mkdir()
+    else:
+        shutil.rmtree(ftemp, ignore_errors=True)
+        ftemp.mkdir()
+
+    menu = get_menu(
+        menu_name=lang(ru="Подгрузка TDATA", en="Loading TDATA"),
+        choices_raw=None,
+        is_description=False,
+    )
+    click.echo(menu)
+
+    sem = asyncio.Semaphore(60)
+    tdata_paths = [
+        f for f in os.listdir("feed_tdata") if Path("feed_tdata", f).is_dir()
+    ]
+
+    if not tdata_paths:
+        return logger.opt(colors=True).error(
+            lang(
+                ru="Не найдено ни одной TDATA в `feed_tdata`",
+                en="No any TDATA was found in `feed_tdata`",
+            )
+        )
+
+    logger.opt(colors=True).success(
+        lang(
+            ru="Найдено <g><n>{count}</n></g> tdata. Подгружаем...",
+            en="Found <g><n>{count}</n></g> tdata. Loading...",
+        ),
+        count=len(tdata_paths),
+    )
+
+    converting_tasks = [_load_tdata_account(path, sem) for path in tdata_paths]
+
+    new_phones = await asyncio.gather(*converting_tasks)
+    new_phones = {
+        new_phone for new_phone in new_phones if new_phone is not None
+    }
+    with open("accounts.txt", encoding="utf-8") as accounts:
+        exist_accounts = set(accounts.read().split())
+
+    with open("accounts.txt", "w", encoding="utf-8") as new_accounts:
+        new_accounts.write("\n".join(exist_accounts | new_phones))
+
+    logger.opt(colors=True).success(
+        lang(
+            ru="Удалось подгрузить <n><g>{added}</g></n> новых аккаунтов!",
+            en="Loaded <n><g>{added}</g></n> new accounts!",
+        ),
+        added=len(new_phones),
+    )
+
+    shutil.rmtree(".tdtemp", ignore_errors=True)
+
+    raise ExitToMenu()
+
+
+async def _load_tdata_account(path: str, sem: asyncio.Semaphore):
+    async with sem:
+        real_path = Path("feed_tdata", path)
+        client = None
+
+        try:
+            tdesk = opentele.td.TDesktop(str(real_path), keyFile="data")
+            # api = opentele.api.API.TelegramIOS.Generate()
+
+            new_session_path = Path(".tdtemp", uuid.uuid4().hex + ".session")
+
+            client = await tdesk.ToTelethon(
+                session=str(new_session_path),
+                flag=opentele.api.UseCurrentSession,
+                # api=api
+            )
+
+            await asyncio.wait_for(client.connect(), timeout=10)
+            me = await client.get_me()
+
+            if me is None:
+                raise asyncio.TimeoutError()
+
+            await client.disconnect()
+            await asyncio.sleep(1)
+            shutil.move(
+                str(new_session_path),
+                new_session_path.parent.parent
+                / "sessions"
+                / (me.phone + ".session"),
+            )
+        except asyncio.TimeoutError:
+            logger.opt(colors=True).warning(
+                lang(
+                    ru="Не удалось подключиться к аккаунту <c>{path}</c>",
+                    en="Failed to connect to the <c>{path}</c> account",
+                ),
+                path=str(real_path),
+            )
+            return None
+        except asyncio.TimeoutError:
+            logger.opt(colors=True).warning(
+                lang(
+                    ru="Не удалось подключиться к аккаунту <c>{path}</c>",
+                    en="Failed to connect to the <c>{path}</c> account",
+                ),
+                path=str(real_path),
+            )
+            return None
+        else:
+            logger.opt(colors=True).info(
+                lang(
+                    ru="Удалось подгрузить аккаунт <c>{spam_session_file}</c> ({"
+                    "real_path})",
+                    en="Successfully loaded <c>{spam_session_file}</c> account ({"
+                    "real_path})",
+                ),
+                spam_session_file=me.phone,
+                real_path=str(real_path),
+            )
+            return me.phone
+        finally:
+            try:
+                if client:
+                    if client.is_connected():
+                        await client.disconnect()
+                await asyncio.sleep(0.5)
+                if new_session_path.exists():
+                    try:
+                        os.remove(new_session_path)
+                    except PermissionError:
+                        pass
+                shutil.rmtree(real_path, ignore_errors=True)
+            except Exception as cleanup_err:
+                logger.debug(f"Cleanup error: {cleanup_err}")
