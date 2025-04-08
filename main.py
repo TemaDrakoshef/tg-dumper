@@ -1,5 +1,7 @@
 import asyncio
 
+from loguru import logger
+
 from src.impl.home import home_page
 from src.config import setup_config
 from src.utils import return_to_menu, setup_logging

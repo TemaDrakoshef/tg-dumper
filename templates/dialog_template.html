@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>{{ dialog.name }} - Telegram Dumper</title>
+		<link href="css/style.css" rel="stylesheet" />
+		<script src="js/script.js"></script>
+	</head>
+	<body onload="CheckLocation();">
+		<div class="page_wrap">
+			<div class="page_header">
+				<div class="content">
+					<div class="text bold">{{ dialog.name }}</div>
+				</div>
+			</div>
+
+			<div class="page_body chat_page">
+				<div class="history">
+					{% for msg in messages %}
+					<div class="message default clearfix" id="message{{ msg.id }}">
+						<div class="pull_left userpic_wrap">
+							<div class="userpic userpic8" style="width: 42px; height: 42px">
+								<div class="initials" style="line-height: 42px">
+									{{ get_sender_initial(msg) }}
+								</div>
+							</div>
+						</div>
+
+						<div class="body">
+							<div class="pull_right date details">
+								{{ format_date(msg.date) }}
+							</div>
+
+							<div class="from_name">
+								{% if msg.sender %} {{ msg.sender.first_name or
+								msg.sender.username or msg.sender.title }} {% else %} Unknown {%
+								endif %}
+							</div>
+
+							{% if msg.text %}
+							<div class="text">{{ msg.text }}</div>
+							{% endif %} {% if msg.media %}
+							<div class="media_wrap clearfix">
+								{% if msg.media %} {% if msg.media.photo %}
+								<div class="media photo">
+									<img
+										src="photos/photo_{{ msg.media.photo.id }}.jpg"
+										alt="Photo"
+									/>
+								</div>
+								{% elif msg.media.document %} {% set ext =
+								msg.media.document.mime_type.split('/')[-1] %}
+								<a
+									href="files/{{ msg.media.document.id }}.{{ ext }}"
+									class="media document"
+								>
+									Document ({{ ext }})
+								</a>
+								{% elif msg.media.webpage %}
+								<div class="media webpage">
+									<a href="{{ msg.media.webpage.url }}"
+										>{{ msg.media.webpage.title }}</a
+									>
+								</div>
+								{% endif %} {% endif %}
+							</div>
+							{% endif %}
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
