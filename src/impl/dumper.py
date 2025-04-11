@@ -75,6 +75,8 @@ async def export_dialog(client: TelegramClient, dialog: types.Dialog):
     (export_dir / "js").mkdir(exist_ok=True)
     (export_dir / "media").mkdir(exist_ok=True)
     (export_dir / "media" / ".thumb").mkdir(exist_ok=True)
+    # (export_dir / "media" / "videos").mkdir(exist_ok=True)
+    (export_dir / "media" / "audios").mkdir(exist_ok=True)
     copy_static_files(export_dir)
 
     messages = []
@@ -134,6 +136,7 @@ async def download_media(
 ):
     if not message.media:
         return None
+    result = None
 
     media_dir = export_dir / "media"
     if isinstance(message.media, types.MessageMediaPhoto):
@@ -151,7 +154,23 @@ async def download_media(
                     break
         return path
 
-    return None
+    elif isinstance(message.media, types.MessageMediaDocument):
+        doc = message.media.document
+        mime_type = doc.mime_type.split("/")[0]
+        ext = doc.mime_type.split("/")[-1] if doc.mime_type else "file"
+
+        # if mime_type == "video":
+        #     filename = f"video_{message.id}.{ext}"
+        #     path = media_dir / "videos" / filename
+        #     await client.download_media(message.media, file=path)
+        #     result = path
+        if mime_type == "audio":
+            filename = f"audio_{message.id}.{ext}"
+            path = media_dir / "audios" / filename
+            await client.download_media(message.media, file=path)
+            result = path
+
+    return result
 
 
 def copy_static_files(export_dir: Path):
