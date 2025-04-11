@@ -72,6 +72,7 @@ async def export_dialog(client: TelegramClient, dialog: types.Dialog):
     (export_dir / "css").mkdir(exist_ok=True)
     (export_dir / "js").mkdir(exist_ok=True)
     (export_dir / "media").mkdir(exist_ok=True)
+    (export_dir / "media" / ".thumb").mkdir(exist_ok=True)
     copy_static_files(export_dir)
 
     messages = []
@@ -84,6 +85,9 @@ async def export_dialog(client: TelegramClient, dialog: types.Dialog):
                     en=f"Dialog <c>{dialog.name}</c>: Received <c>{len(messages)}</c> messages",
                 )
             )
+
+        if message.media:
+            await download_media(client, message, export_dir)
 
     logger.opt(colors=True).info(
         lang(
@@ -132,9 +136,18 @@ async def download_media(
     media_dir = export_dir / "media"
     if isinstance(message.media, types.MessageMediaPhoto):
         filename = f"photo_{message.id}.jpg"
-        path = media_dir / filename
+        path = media_dir / "photos" / filename
         await client.download_media(message.media, file=path)
-        return f"media/{filename}"
+
+        thumbnail_path = media_dir / ".thumb" / filename
+        for size in message.media.photo.sizes:
+            if isinstance(size, (types.PhotoSize, types.PhotoSizeProgressive)):
+                if size.type == "m":
+                    await client.download_media(
+                        message.media, thumb=size, file=thumbnail_path
+                    )
+                    break
+        return path
 
     return None
 

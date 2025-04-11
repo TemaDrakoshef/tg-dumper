@@ -43,10 +43,16 @@
 							<div class="media_wrap clearfix">
 								{% if msg.media %} {% if msg.media.photo %}
 								<div class="media photo">
-									<img
-										src="photos/photo_{{ msg.media.photo.id }}.jpg"
-										alt="Photo"
-									/>
+									<a
+										class="photo_wrap clearfix pull_left"
+										href="media/photos/photo_{{ msg.id }}.jpg"
+										target="_blank"
+									>
+										<img
+											src="media/.thumb/photo_{{ msg.id }}.jpg"
+											alt="Photo"
+										/>
+									</a>
 								</div>
 								{% elif msg.media.document %} {% set ext =
 								msg.media.document.mime_type.split('/')[-1] %}
