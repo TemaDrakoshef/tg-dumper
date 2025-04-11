@@ -39,5 +39,5 @@ uv run ./main.py
 To compile the project into a standalone executable, use Nuitka:
 
 ```console
-uv run nuitka --standalone --follow-imports --mingw64 --show-progress --onefile  --output-dir=build main.py
+nuitka --standalone --follow-imports --include-package=opentele --mingw64 --show-progress --onefile --output-dir=build main.py
 ```
