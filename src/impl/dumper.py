@@ -50,6 +50,8 @@ async def _dumper(client: TelegramClient, sem: asyncio.Semaphore):
         for dialog in dialogs:
             if not dialog.is_user:
                 continue
+            if dialog.entity.bot:
+                continue
 
             logger.opt(colors=True).info(
                 lang(
